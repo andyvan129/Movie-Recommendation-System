@@ -81,7 +81,6 @@ if (detectCores() > 1){
   registerDoSEQ()
 }
 
-
 # method 1: train model and ensemble them
 # split dataset to train and test set for model ensemble
 ensemble_index <- createDataPartition(edx$rating, times = 1, p = 0.2, list = FALSE)
@@ -89,8 +88,8 @@ ensemble_set <- edx[ensemble_index,]
 train <- edx[-ensemble_index,]
 
 # use cross validation to train several models
-control <- trainControl(method = 'cv', p = 0.25)
-train(rating ~ ., data = train, trControl = control, method = "glm")
+control <- trainControl(method = 'cv', p = 0.1)
+train(rating ~ ., data = final_holdout_test, trControl = control, method = "glm")
 
 # calculate RSME
 
