@@ -65,3 +65,33 @@ edx <- rbind(edx, removed)
 
 rm(dl, ratings, movies, test_index, temp, movielens, removed)
 
+
+# Install required packages and enable parallel processing to reduce computing time
+packages <- c('parallel', 'doParallel')
+for (pack in packages) {
+  if (!require(pack, character.only = TRUE)) install.packages(pack)
+  library(pack, character.only = TRUE)
+}
+
+if (detectCores() > 1){
+  num_core <- detectCores() - 1
+  pl <- makeCluster(num_core)
+  registerDoParallel(pl)
+} else {
+  registerDoSEQ()
+}
+
+
+# method 1: train model and ensemble them
+# split dataset to train and test set for model ensemble
+ensemble_index <- createDataPartition(edx$rating, times = 1, p = 0.2, list = FALSE)
+ensemble_set <- edx[ensemble_index,]
+train <- edx[-ensemble_index,]
+
+# use cross validation to train several models
+control <- trainControl(method = 'cv', p = 0.25)
+train(rating ~ ., data = train, trControl = control, method = "glm")
+
+# calculate RSME
+
+# use test set to ensemble models and select criteria
