@@ -81,26 +81,24 @@ if (detectCores() > 1){
   registerDoSEQ()
 }
 
-# method 1: train model and ensemble them
-# split dataset to train and test set for model ensemble
-ensemble_index <- createDataPartition(edx$rating, times = 1, p = 0.2, list = FALSE)
-ensemble_set <- edx[ensemble_index,]
-train <- edx[-ensemble_index,]
 
-# use cross validation to train several models
-control <- trainControl(method = 'cv', p = 0.1)
-train(rating ~ ., data = final_holdout_test, trControl = control, method = "glm")
-# this method didn't work due to out of memory issue
+# Rating = mean_of_all + movie_effect + user_effect
+#          + mean_of_sim_movies
+#          + regularized_movie_rating
+#          + regularized_user
 
-# method 2: 
 # Goal: predict rating of movie i by user u
 # Predictor 1: all ratings of movie i
 # Predictor 2: all ratings from user u
 # Predictor 3: ratings of movies similar to i
 # Predictor 4: ratings from users similar to u
 
+# The goal is to use a unique userid and movieID pair to predict rating of this movie
+
 # calculate RSME
-sqrt(sum((y_hat - y)^2) / N)
+RSME <- function(y_hat, y){
+  sqrt(mean((y_hat - y)^2))
+  }
 
 
 # use test set to ensemble models and select criteria
