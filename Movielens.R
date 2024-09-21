@@ -88,9 +88,26 @@ if (detectCores() > 1){
 #          + regularized_user
 
 # Goal: predict rating of movie i by user u
-# Predictor 1: all ratings of movie i
-# Predictor 2: all ratings from user u
+# Predictor 1: all ratings from user u
+user_avg <- edx %>%
+  group_by(userId) %>%
+  summarise(user_avg = mean(rating))
+train_data <- left_join(edx, user_avg, by = "userId") %>%
+  select(userId, movieId, rating, genres, user_avg)
+
+# Predictor 2: all ratings of movie i
+movie_avg <- edx %>%
+  group_by(movieId) %>%
+  summarise(movie_avg = mean(rating))
+train_data <- left_join(train_data, movie_avg, by = "movieId")
+
 # Predictor 3: ratings of movies similar to i
+genres_avg <- edx %>%
+  group_by(genres) %>%
+  summarise(genres_avg = mean(rating))
+train_data <- left_join(train_data, genres_avg, by = "genres") %>%
+  select(-genres)
+
 # Predictor 4: ratings from users similar to u
 
 # The goal is to use a unique userid and movieID pair to predict rating of this movie
