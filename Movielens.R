@@ -89,14 +89,33 @@ if (detectCores() > 1){
 
 # Goal: use a unique userid and movieID pair to predict rating of this movie
 
+pred_data <- function(data){
+  # Predictor 1: all ratings from user u
+  user_avg <- data %>%
+    group_by(userId) %>%
+    summarise(user_avg = mean(rating))
+  # Predictor 2: all ratings of movie i
+  movie_avg <- edx %>%
+    group_by(movieId) %>%
+    summarise(movie_avg = mean(rating))
+  # Predictor 3: ratings of movies similar to i
+  genres_avg <- edx %>%
+    group_by(genres) %>%
+    summarise(genres_avg = mean(rating))
+  data <- data %>%
+    left_join(user_avg, by = "userId") %>%
+    left_join(movie_avg, by = "movieId") %>%
+    left_join(genres_avg, by = "genres")
+  data <- data %>% select(rating, user_avg, movie_avg, genres_avg)
+}
 # Predictor 1: all ratings from user u
 user_avg <- edx %>%
   group_by(userId) %>%
   summarise(user_avg = mean(rating))
-train_data <- left_join(edx, user_avg, by = "userId") %>%
+train_data <- edx %>% 
+  left_join(user_avg, by = "userId") %>%
   select(userId, movieId, rating, genres, user_avg)
-test_data <- left_join(final_holdout_test, user_avg, by = "userId") %>%
-  select(userId, movieId, rating, genres, user_avg)
+
 
 # Predictor 2: all ratings of movie i
 movie_avg <- edx %>%
@@ -110,8 +129,6 @@ genres_avg <- edx %>%
   group_by(genres) %>%
   summarise(genres_avg = mean(rating))
 train_data <- left_join(train_data, genres_avg, by = "genres") %>%
-  select(-genres)
-test_data <- left_join(test_data, genres_avg, by = "genres") %>%
   select(-genres)
 
 # Predictor 4: ratings from users similar to u
