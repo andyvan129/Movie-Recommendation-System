@@ -81,28 +81,27 @@ if (detectCores() > 1){
   registerDoSEQ()
 }
 
-
-# Rating = mean_of_all + movie_effect + user_effect
-#          + mean_of_sim_movies
-#          + regularized_movie_rating
-#          + regularized_user
-
 # Goal: use a unique userid and movieID pair to predict rating of this movie
 
 # function to process information from raw data to useful predictors
 process_data <- function(data){
+  
   # Predictor 1: all ratings from user u
   user_avg <- data %>%
     group_by(userId) %>%
     summarise(user_avg = mean(rating))
+  
   # Predictor 2: all ratings of movie i
-  movie_avg <- edx %>%
+  movie_avg <- data %>%
     group_by(movieId) %>%
     summarise(movie_avg = mean(rating))
+  
   # Predictor 3: ratings of movies similar to i
-  genres_avg <- edx %>%
+  genres_avg <- data %>%
     group_by(genres) %>%
     summarise(genres_avg = mean(rating))
+  
+  # Predictor 4: ratings from users similar to u
   
   # create data parameters for training and testing
   modified_data <- data %>%
@@ -115,8 +114,6 @@ process_data <- function(data){
 train_data <- process_data(edx)
 test_data <- process_data(final_holdout_test)
 
-# Predictor 4: ratings from users similar to u
-
 # use the above predictors to train a model
 control <- trainControl(method = "cv", p = 0.75)
 fit <- train(rating ~ ., data = train_data, 
@@ -124,16 +121,20 @@ fit <- train(rating ~ ., data = train_data,
              trControl = control, 
              metric = "RMSE")
 
-# calculate RSME
+# function to calculate RMSE
 RMSE <- function(y_hat, y){
   sqrt(mean((y_hat - y)^2))
   }
 
+# pull test parameters from final test data
 test_parameters <- test_data %>%
   select(-rating)
+# pull the correct rating data from final test data, for RMSE calculation
 final_rating <- test_data %>%
   pull(rating)
 
-rating_hat <- predict(fit, final_test_data)
+# predict rating using model
+rating_hat <- predict(fit, test_parameters)
 
+# calculate RMSE
 RMSE(rating_hat, final_rating)
