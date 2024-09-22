@@ -101,8 +101,6 @@ process_data <- function(data){
     group_by(genres) %>%
     summarise(genres_avg = mean(rating))
   
-  # Predictor 4: ratings from users similar to u
-  
   # create data parameters for training and testing
   modified_data <- data %>%
     left_join(user_avg, by = "userId") %>%
@@ -115,7 +113,7 @@ train_data <- process_data(edx)
 test_data <- process_data(final_holdout_test)
 
 # use the above predictors to train a model
-control <- trainControl(method = "cv", p = 0.75)
+control <- trainControl(method = "cv", p = 0.75, number = 10)
 fit <- train(rating ~ ., data = train_data, 
              method = "glm", 
              trControl = control, 

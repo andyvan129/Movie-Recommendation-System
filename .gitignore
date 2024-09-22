@@ -35,3 +35,4 @@ po/*~
 rsconnect/
 ml-10M100K
 ml-10M100K.zip
+.DS_Store
